@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "rockyProGym",
+    "slug": "rockyProGym",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/rocky_gym_logo.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/rocky_gym_logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
