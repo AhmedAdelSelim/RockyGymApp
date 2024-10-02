@@ -30,13 +30,13 @@ const data: DataItem[] = [
     id: "3",
     title: "منتجات روكي",
     image: require("@/assets/images/products.png"),
-    path: "",
+    path: "products",
   },
   {
     id: "4",
     title: "حالة الجيم الأن",
     image: require("@/assets/images/gym_status.jpeg"),
-    path: "",
+    path: "status",
   },
   {
     id: "5",
@@ -49,7 +49,7 @@ const data: DataItem[] = [
     id: "6",
     title: "المكملات",
     image: require("@/assets/images/supplements.jpeg"),
-    path: "",
+    path: "supplements",
   },
   {
     id: "7",

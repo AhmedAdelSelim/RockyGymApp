@@ -8,12 +8,24 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Colors } from "@/constants/Colors";
+import { supabase } from "@/utils/supabase"; // Adjust this import based on your Supabase client setup
 
 export default function AuthHome() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      router.replace("/(tabs)");  // Redirect to index page if session exists
+    }
+  }
 
   return (
     <ImageBackground

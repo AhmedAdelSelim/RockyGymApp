@@ -16,7 +16,7 @@ import { Colors } from "@/constants/Colors";
 const AboutScreen = () => {
   const owners = [
     { id: "1", name: "كابتن روكي", contact: "+201020952678" },
-    { id: "2", name: "كابتن أحمد ", contact: "+201020952678" },
+    { id: "2", name: "كابتن أحمد ", contact: "+201024155999" },
   ];
 
   const handleWhatsApp = (contactNumber: string) => {

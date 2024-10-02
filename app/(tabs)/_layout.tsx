@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { FontAwesome } from '@expo/vector-icons';
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
@@ -51,6 +52,13 @@ export default function TabLayout() {
               color={color}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: "Cart",
+          tabBarIcon: ({ color }) => <FontAwesome name="shopping-cart" size={24} color={color} />,
         }}
       />
     </Tabs>
