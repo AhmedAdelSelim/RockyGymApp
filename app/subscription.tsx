@@ -11,6 +11,9 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { supabase } from "../utils/supabase";
 import DropDownPicker from "react-native-dropdown-picker"; // Import DropDownPicker
@@ -44,6 +47,7 @@ const SubscriptionScreen = () => {
     { label: "Package Subscription", value: "package" },
     { label: "Session Subscription", value: "session" },
   ]);
+  const isAdmin = false;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,6 +154,21 @@ const SubscriptionScreen = () => {
     }
   };
 
+  const handleSavePrices = async () => {
+    try {
+      // Save updated prices to Supabase
+      const { error } = await supabase.from("gym_pricelist").upsert(priceList);
+
+      if (error) throw error;
+
+      Alert.alert("تم حفظ الأسعار بنجاح");
+      setModalVisible(false);
+    } catch (error: any) {
+      console.error("Error saving prices:", error.message);
+      Alert.alert("Error", "There was an error saving your prices.");
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -189,25 +208,23 @@ const SubscriptionScreen = () => {
         <Text style={styles.header}>ROCKY GYM</Text>
         <Text style={styles.subHeader}>Pricelist</Text>
         <Text style={styles.title}>Rocky Gym & Fitness Center</Text>
-
         <ScrollView contentContainerStyle={styles.scrollView}>
           {renderSection("monthly", "الإشتراكات الشهرية")}
           {renderSection("offer", "عروض الإشتراكات")}
           {renderSection("package", "الباقات الشهرية")}
           {renderSection("session", "الحصص اليومية")}
         </ScrollView>
-
         {/* Button to Open Modal */}
         {subscriptionBtnVisible ? (
           <TouchableOpacity
             style={styles.openButton}
             onPress={() => setModalVisible(true)}
           >
-            <Text style={styles.openButtonText}>اشترك الان</Text>
+            <Text style={styles.openButtonText}>
+              {isAdmin ? "تحديث الاشتراك" : "اشترك الان"}
+            </Text>
           </TouchableOpacity>
         ) : null}
-
-        {/* Subscription Modal */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -216,41 +233,87 @@ const SubscriptionScreen = () => {
             setModalVisible(false);
           }}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>اختر الباقة للإشتراك</Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              {!isAdmin ? (
+                <View style={styles.modalContainer}>
+                  <Text style={styles.modalTitle}>اختر الباقة للإشتراك</Text>
 
-              {/* Subscription Type DropDown */}
-              <DropDownPicker
-                open={open}
-                value={selectedType}
-                items={items}
-                setOpen={setOpen}
-                setValue={setSelectedType}
-                setItems={setItems}
-                containerStyle={styles.pickerContainer}
-                style={styles.picker}
-                placeholder="اختر نوع الاشتراك "
-                dropDownContainerStyle={styles.picker}
-              />
+                  {/* Subscription Type DropDown */}
+                  <DropDownPicker
+                    open={open}
+                    value={selectedType}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setSelectedType}
+                    setItems={setItems}
+                    containerStyle={styles.pickerContainer}
+                    style={styles.picker}
+                    placeholder="اختر نوع الاشتراك "
+                    dropDownContainerStyle={styles.picker}
+                  />
 
-              {/* Confirm Button */}
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.confirmButtonText}>تأكيد</Text>
-              </TouchableOpacity>
+                  {/* Confirm Button */}
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleConfirm}
+                  >
+                    <Text style={styles.confirmButtonText}>تأكيد</Text>
+                  </TouchableOpacity>
 
-              {/* Cancel Button */}
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>إلغاء</Text>
-              </TouchableOpacity>
+                  {/* Cancel Button */}
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>إلغاء</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.modalContainer}>
+                  <Text style={styles.modalTitle}>تحديث الأسعار</Text>
+                  <ScrollView
+                    contentContainerStyle={styles.scrollViewContent}
+                    keyboardShouldPersistTaps="handled" // Ensures keyboard dismisses on tap
+                  >
+                    {priceList.map((item) => (
+                      <View key={item.id} style={styles.priceUpdateContainer}>
+                        <Text style={styles.itemText}>{item.title}</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={String(item.price)}
+                          onChangeText={(text) => {
+                            const newPriceList = priceList.map((priceItem) =>
+                              priceItem.id === item.id
+                                ? { ...priceItem, price: Number(text) }
+                                : priceItem
+                            );
+                            setPriceList(newPriceList);
+                          }}
+                          keyboardType="numeric"
+                        />
+                      </View>
+                    ))}
+                  </ScrollView>
+                  {/* Save Button */}
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleSavePrices}
+                  >
+                    <Text style={styles.confirmButtonText}>حفظ الأسعار</Text>
+                  </TouchableOpacity>
+
+                  {/* Cancel Button */}
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>إلغاء</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
       </Animated.View>
     </ImageBackground>
@@ -355,10 +418,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    width: "80%",
+    width: "90%",
+    maxHeight: "80%", // Limit the height of the modal
     backgroundColor: "#1a1a1a",
     padding: 20,
     borderRadius: 10,
+    elevation: 5, // Add shadow effect for Android
+    shadowColor: "#000", // Add shadow effect for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   modalTitle: {
     fontSize: 22,
@@ -405,6 +474,20 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  priceUpdateContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  scrollViewContent: {
+    paddingBottom: 20, // Add some padding at the bottom
+    flexGrow: 1, // Allow the content to grow
   },
 });
 

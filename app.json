@@ -12,12 +12,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        
         "backgroundColor": "#ffffff"
       }
     },
@@ -25,9 +25,7 @@
       "bundler": "metro",
       "output": "static"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
     }

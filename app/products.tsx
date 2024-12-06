@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
@@ -15,10 +14,12 @@ import {
   Linking,
   Animated,
   Alert,
-} from 'react-native';
-import { supabase } from '../utils/supabase';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+  Image,
+} from "react-native";
+import { supabase } from "../utils/supabase";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import ShimmerPlaceholder from "react-native-shimmer-placeholder";
 
 // Force RTL layout for Arabic
 I18nManager.forceRTL(true);
@@ -31,7 +32,7 @@ type Product = {
   image: string;
 };
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 const cardWidth = width * 0.44;
 
 export default function ProductsScreen() {
@@ -40,6 +41,7 @@ export default function ProductsScreen() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(height));
+  const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
     fetchProducts();
@@ -62,15 +64,15 @@ export default function ProductsScreen() {
   async function fetchProducts() {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('id', { ascending: true });
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
 
       if (error) throw error;
 
       setProducts(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
@@ -83,12 +85,12 @@ export default function ProductsScreen() {
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
-        { 
-          text: "OK", 
-          onPress: () => confirmAddToCart(product)
-        }
+        {
+          text: "OK",
+          onPress: () => confirmAddToCart(product),
+        },
       ]
     );
   }
@@ -96,89 +98,136 @@ export default function ProductsScreen() {
   async function confirmAddToCart(product: Product) {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     const { data, error } = await supabase
-      .from('cart_items')
-      .insert({ product_id: product.id, quantity: 1 ,user_id: userId});
+      .from("cart_items")
+      .insert({ product_id: product.id, quantity: 1, user_id: userId });
 
     if (error) {
       Alert.alert("Error", "Failed to add item to cart. Please try again.");
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
     } else {
       Alert.alert("Success", `${product.name} has been added to your cart.`);
-      console.log('Added to cart:', data);
+      console.log("Added to cart:", data);
       setModalVisible(false);
     }
   }
 
   const openWhatsApp = () => {
     // Replace this with your gym coach's WhatsApp number
-    const phoneNumber = '+201020952678';
+    const phoneNumber = "+201020952678";
     const message = `مرحبًا، أنا مهتم بالمنتج: ${selectedProduct?.name}`;
-    Linking.openURL(`whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`);
+    Linking.openURL(
+      `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`
+    );
   };
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={styles.cardWrapper} 
-      onPress={() => {
-        setSelectedProduct(item);
-        setModalVisible(true);
-      }}
-    >
-      <View style={styles.card}>
-        <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={styles.gradient}
-        >
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.price}>{item.price.toFixed(2)} جنيه</Text>
-        </LinearGradient>
-      
-      </View>
-    </TouchableOpacity>
-  );
+  const renderProduct = ({ item }: { item: Product }) => {
+    return (
+      <TouchableOpacity
+        style={styles.cardWrapper}
+        onPress={() => {
+          setSelectedProduct(item);
+          setModalVisible(true);
+        }}
+      >
+        <View style={styles.card}>
+          <ShimmerPlaceholder
+            style={styles.image}
+            autoRun={true}
+            visible={!imageLoading}
+          >
+            <Image
+              source={{
+                uri: item.image,
+              }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoadStart={() => setImageLoading(true)}
+              onLoadEnd={() => setImageLoading(false)}
+            />
+          </ShimmerPlaceholder>
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.8)"]}
+            style={styles.gradient}
+          >
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.price}>{item.price.toFixed(2)} جنيه</Text>
+          </LinearGradient>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
-  const renderModal = () => (
-    <Modal
-      animationType="none"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <Animated.View
-          style={[
-            styles.modalContainer,
-            {
-              transform: [{ translateY: modalAnimation }],
-            },
-          ]}
-        >
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView contentContainerStyle={styles.modalContent}>
-            {selectedProduct && (
-              <>
-                <Image source={{ uri: selectedProduct.image }} style={styles.modalImage} resizeMode="cover" />
-                <Text style={styles.modalName}>{selectedProduct.name}</Text>
-                <Text style={styles.modalPrice}>{selectedProduct.price.toFixed(2)} جنيه</Text>
-                <Text style={styles.modalDescription}>{selectedProduct.description}</Text>
-                <TouchableOpacity style={styles.whatsappButton} onPress={openWhatsApp}>
-                  <Text style={styles.whatsappButtonText}>تواصل مع المدرب عبر واتساب</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart(selectedProduct)}>
-                  <Text style={styles.addToCartButtonText}>أضف إلى السلة</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </Modal>
-  );
+  const renderModal = () => {
+    return (
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{ translateY: modalAnimation }],
+              },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.modalContent}>
+              {selectedProduct ? (
+                <>
+                  <ShimmerPlaceholder
+                    style={styles.modalImage}
+                    autoRun={true}
+                    visible={!imageLoading}
+                  >
+                    <Image
+                      source={{ uri: selectedProduct.image }}
+                      style={styles.modalImage}
+                      resizeMode="cover"
+                      onLoadStart={() => setImageLoading(true)}
+                      onLoadEnd={() => setImageLoading(false)}
+                    />
+                  </ShimmerPlaceholder>
+                  <Text style={styles.modalName}>{selectedProduct.name}</Text>
+                  <Text style={styles.modalPrice}>
+                    {selectedProduct.price.toFixed(2)} جنيه
+                  </Text>
+                  <Text style={styles.modalDescription}>
+                    {selectedProduct.description}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.whatsappButton}
+                    onPress={openWhatsApp}
+                  >
+                    <Text style={styles.whatsappButtonText}>
+                      تواصل مع المدرب عبر واتساب
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.addToCartButton}
+                    onPress={() => addToCart(selectedProduct)}
+                  >
+                    <Text style={styles.addToCartButtonText}>
+                      أضف إلى السلة
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <Text>Loading...</Text>
+              )}
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </Modal>
+    );
+  };
 
   if (loading) {
     return (
@@ -195,7 +244,7 @@ export default function ProductsScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.comingSoonContainer}>
           <LinearGradient
-            colors={['#FFD700', '#FFA500', '#FF0000']}
+            colors={["#FFD700", "#FFA500", "#FF0000"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.comingSoonGradient}
@@ -206,9 +255,6 @@ export default function ProductsScreen() {
               <Text style={styles.comingSoonSubtext}>
                 نعمل بجد لنقدم لكم منتجات رائعة!
               </Text>
-              <TouchableOpacity style={styles.notifyButton}>
-                <Text style={styles.notifyButtonText}>أبلغني عند التوفر</Text>
-              </TouchableOpacity>
             </View>
           </LinearGradient>
         </View>
@@ -218,14 +264,19 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <FlatList
-        data={products}
-        renderItem={renderProduct}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.container}
-      />
-      {renderModal()}
+      <LinearGradient
+        colors={["#e0eafc", "#cfdef3"]}
+        style={styles.gradientBackground}
+      >
+        <FlatList
+          data={products}
+          renderItem={renderProduct}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={styles.container}
+        />
+        {renderModal()}
+      </LinearGradient>
     </SafeAreaView>
   );
 }
@@ -233,15 +284,17 @@ export default function ProductsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+  },
+  gradientBackground: {
+    flex: 1,
   },
   container: {
     padding: 8,
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   cardWrapper: {
     width: cardWidth,
@@ -249,45 +302,45 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 5,
+    overflow: "hidden",
+    elevation: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    backgroundColor: '#fff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    backgroundColor: "#fff",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: cardWidth * 1.2,
   },
   gradient: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    height: '50%',
-    justifyContent: 'flex-end',
+    height: "50%",
+    justifyContent: "flex-end",
     padding: 10,
   },
   name: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'right',
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "right",
     marginBottom: 4,
   },
   price: {
     fontSize: 14,
-    color: '#FFD700',
-    fontWeight: 'bold',
-    textAlign: 'right',
+    color: "#FFD700",
+    fontWeight: "bold",
+    textAlign: "right",
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     left: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 20,
     padding: 5,
   },
@@ -296,111 +349,116 @@ const styles = StyleSheet.create({
   },
   comingSoonGradient: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   comingSoonContent: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 20,
   },
   comingSoonText: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginTop: 20,
     marginBottom: 10,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
   comingSoonSubtext: {
     fontSize: 16,
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 30,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
   notifyButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 25,
   },
   notifyButtonText: {
-    color: '#FF0000',
+    color: "#FF0000",
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    width: '100%',
-    maxHeight: '90%',
+    width: "100%",
+    maxHeight: "90%",
+    borderColor: "#FFD700",
+    borderWidth: 2,
   },
   modalHeader: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginBottom: 10,
   },
   modalContent: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 10,
     marginBottom: 15,
   },
   modalName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontSize: 26,
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 10,
   },
   modalPrice: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFD700',
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#FFD700",
     marginBottom: 15,
   },
   modalDescription: {
     fontSize: 16,
-    textAlign: 'right',
+    textAlign: "right",
     marginBottom: 20,
   },
   whatsappButton: {
-    backgroundColor: '#25D366',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-  },
-  whatsappButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  addToCartButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: "#25D366",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 25,
     marginTop: 10,
+    elevation: 5,
+  },
+  whatsappButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  addToCartButton: {
+    backgroundColor: "#FFD700",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginTop: 10,
+    elevation: 5,
   },
   addToCartButtonText: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

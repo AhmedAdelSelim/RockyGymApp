@@ -65,6 +65,7 @@ const handleClickCardItem = (router: ExpoRouter.Router, path: string) => {
 };
 const HomeScreen = () => {
   const router = useRouter();
+
   const renderItem = ({ item }: { item: DataItem }) => (
     <View style={styles.cardContainer}>
       <Card
