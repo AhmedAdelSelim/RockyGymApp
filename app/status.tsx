@@ -47,10 +47,16 @@ export default function StatusPage() {
   const [modalVisible, setModalVisible] = useState(false); // State to manage modal visibility
   const [loading, setLoading] = useState(true); // State to manage loading status
 
-  const isAdmin = false;
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     const fetchGymStatus = async () => {
       setLoading(true); // Set loading to true before fetching data
+
+      const user = (await supabase.auth.getUser()).data.user?.email;
+      if (user === "rockyadmin94@rockygym") {
+        setIsAdmin(true);
+      }
+
       const { data, error } = await supabase
         .from<"gym_status", GymStatus>("gym_status")
         .select("*")
@@ -64,6 +70,7 @@ export default function StatusPage() {
       setGymStatus(data as GymStatus);
       setLoading(false); // Set loading to false after data is fetched
     };
+
     fetchGymStatus();
   }, []);
 

@@ -18,7 +18,7 @@ const data: DataItem[] = [
     id: "1",
     title: "اعرف تمرينتك",
     image: require("@/assets/images/instruction.jpeg"),
-    path: "",
+    path: "videos",
   },
   {
     id: "2",

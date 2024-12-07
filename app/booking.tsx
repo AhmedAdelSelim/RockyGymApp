@@ -11,12 +11,14 @@ import {
   Platform,
 } from "react-native";
 import { supabase } from "../utils/supabase";
+import AdminBookingScreen from "./adminBooking";
 
-interface Locker {
+export interface Locker {
   id: number;
   number: string;
   available: boolean;
   status: "available" | "pending" | "booked";
+  owner: string;
 }
 
 const { width } = Dimensions.get("window");
@@ -25,6 +27,7 @@ const ITEM_WIDTH = (width - 30) / 3; // Adjust width for padding and margin
 export default function BookingScreen() {
   const [lockers, setLockers] = useState<Locker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchLockers();
@@ -32,6 +35,12 @@ export default function BookingScreen() {
 
   const fetchLockers = async () => {
     setLoading(true);
+
+    const user = (await supabase.auth.getUser()).data.user?.email;
+    if (user === "rockyadmin94@rockygym") {
+      setIsAdmin(true);
+    }
+
     const { data, error } = await supabase
       .from("lockers")
       .select("*")
@@ -64,9 +73,20 @@ export default function BookingScreen() {
       {
         text: "تأكيد",
         onPress: async () => {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          const { data } = await supabase
+            .from("lockers")
+            .select("*")
+            .eq("owner", user.id);
+          if (data) {
+            Alert.alert("انت بالفعل تمتلك خزانة");
+            return;
+          }
           const { error } = await supabase
             .from("lockers")
-            .update({ available: false, status: "pending" })
+            .update({ status: "pending", owner: user.id })
             .eq("id", locker.id);
 
           if (error) {
@@ -111,7 +131,9 @@ export default function BookingScreen() {
       </Text>
     </TouchableOpacity>
   );
-
+  if (isAdmin) {
+    return <AdminBookingScreen />;
+  }
   return (
     <View style={styles.container}>
       <Image

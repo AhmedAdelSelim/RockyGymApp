@@ -47,11 +47,16 @@ const SubscriptionScreen = () => {
     { label: "Package Subscription", value: "package" },
     { label: "Session Subscription", value: "session" },
   ]);
-  const isAdmin = false;
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const user = (await supabase.auth.getUser()).data.user?.email;
+        if (user === "rockyadmin94@rockygym") {
+          setIsAdmin(true);
+        }
+
         const { data, error } = await supabase
           .from("gym_pricelist")
           .select("*")
