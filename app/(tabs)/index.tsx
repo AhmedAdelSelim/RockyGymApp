@@ -15,6 +15,24 @@ interface DataItem {
 }
 const data: DataItem[] = [
   {
+    id: "-2",
+    title: "online coaching",
+    image: require("@/assets/images/onlinecoaching.jpg"),
+    path: "onlinecoaching",
+  },
+  {
+    id: "-1",
+    title: "حاسب السعرات",
+    image: require("@/assets/images/bmr.jpg"),
+    path: "bmr",
+  },
+  {
+    id: "0",
+    title: " حاسب الكتلة",
+    image: require("@/assets/images/bmi.jpg"),
+    path: "bmi",
+  },
+  {
     id: "1",
     title: "اعرف تمرينتك",
     image: require("@/assets/images/instruction.jpeg"),

@@ -84,7 +84,9 @@ export default function StatusPage() {
     const now = new Date();
     const hour = now.toTimeString().slice(0, 8); // Format to HH:MM:SS
 
-    return hour >= gymStatus.start && hour <= gymStatus.end && gymStatus.isOpen;
+    console.log(hour, gymStatus.start, gymStatus.end);
+
+    return hour <= gymStatus.start && hour <= gymStatus.end && gymStatus.isOpen;
   };
 
   const open = isGymOpen();

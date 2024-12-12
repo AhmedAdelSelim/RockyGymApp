@@ -44,6 +44,9 @@ export default function RootLayout() {
         <Stack.Screen name="videos" options={{ headerShown: false }} />
         <Stack.Screen name="exercise" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="bmi" options={{ headerShown: false }} />
+        <Stack.Screen name="bmr" options={{ headerShown: false }} />
+
         <Stack.Screen name="+not-found" />
       </Stack>
     </ThemeProvider>

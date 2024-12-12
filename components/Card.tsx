@@ -46,10 +46,11 @@ const styles = StyleSheet.create({
     height: 140,
   },
   title: {
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: "bold",
     color: "black",
     flex: 1,
+    marginTop: 25,
   },
 });
 

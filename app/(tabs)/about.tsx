@@ -12,11 +12,28 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient"; // For gradient backgrounds
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { AntDesign, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 
 const AboutScreen = () => {
   const owners = [
-    { id: "1", name: "كابتن روكي", contact: "+201020952678" },
-    { id: "2", name: "كابتن أحمد ", contact: "+201024155999" },
+    {
+      id: "1",
+      name: "كابتن محمد",
+      contact: "+201020952678",
+      facebook: "https://www.facebook.com/share/1JZNAfaT7X/?mibextid=LQQJ4d",
+      tiktok: "https://www.tiktok.com/@cap_rocky1?_t=8s1wMIFMSwC&_r=1",
+      instagram:
+        "https://www.instagram.com/muhammad_nage7/profilecard/?igsh=eXQ3eGNtOWYxaTcz",
+    },
+    {
+      id: "2",
+      name: "كابتن أحمد ",
+      contact: "+201024155999",
+      facebook: "https://www.facebook.com/share/18FfjK7kNx/?mibextid=LQQJ4d",
+      tiktok: "https://www.tiktok.com/@cap_rocky1?_t=8s1wMIFMSwC&_r=1",
+      instagram:
+        "https://www.instagram.com/cap.ahmed.nageh?igsh=cXppc2gxZG8zcnQz",
+    },
   ];
 
   const handleWhatsApp = (contactNumber: string) => {
@@ -43,13 +60,42 @@ const AboutScreen = () => {
           style={styles.content}
         >
           <ThemedText style={styles.text}>
-            ميت الخولي / نادي ميت الخولي الزرقا دمياط
+            دمياط - الزرقا - ميت الخولي عبد الله - نادي ميت الخولي الرياضي{" "}
           </ThemedText>
+          <View style={styles.socialMedia}>
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  "https://www.instagram.com/rockygym123/profilecard/?igsh=Zmo4bXFmZTFxNG1j"
+                )
+              }
+            >
+              <FontAwesome
+                name="instagram"
+                size={50}
+                color="#e1306c"
+                style={{ marginLeft: 90 }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  "https://www.facebook.com/Rockygym123?mibextid=LQQJ4d&mibextid=LQQJ4d"
+                )
+              }
+            >
+              <AntDesign
+                name="facebook-square"
+                size={50}
+                color="#000"
+                style={{ marginRight: 100 }}
+              />
+            </TouchableOpacity>
+          </View>
 
           {owners.map((owner) => (
             <View key={owner.id} style={styles.ownerInfo}>
               <View style={styles.ownerCard}>
-                <ThemedText style={styles.ownerName}>{owner.name}</ThemedText>
                 <TouchableOpacity
                   onPress={() => handleWhatsApp(owner.contact)}
                   style={styles.whatsappButton}
@@ -58,6 +104,32 @@ const AboutScreen = () => {
                     {owner.name}
                   </ThemedText>
                 </TouchableOpacity>
+                <View style={styles.socialMedia}>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(owner.facebook)}
+                  >
+                    <AntDesign
+                      name="facebook-square"
+                      size={50}
+                      color="#3b5998"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(owner.tiktok)}
+                  >
+                    <MaterialIcons
+                      name="tiktok"
+                      size={50}
+                      color="black"
+                      style={{ marginHorizontal: 30 }}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(owner.instagram)}
+                  >
+                    <FontAwesome name="instagram" size={50} color="#e1306c" />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           ))}
@@ -71,6 +143,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#000", // Light background color for the entire screen
+  },
+  socialMedia: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 10,
   },
   container: {
     flexGrow: 1,
@@ -109,11 +186,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
   },
   text: {
-    fontSize: 18,
+    fontSize: 21,
     lineHeight: 26,
     marginBottom: 15,
     textAlign: "center",
     color: "#37474f", // Darker text color for contrast
+    fontWeight: "bold",
   },
   ownerInfo: {
     marginTop: 20,

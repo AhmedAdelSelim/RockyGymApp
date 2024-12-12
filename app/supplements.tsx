@@ -182,24 +182,22 @@ export default function SupplementsScreen() {
 
   if (supplements.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.comingSoonContainer}>
-          <LinearGradient
-            colors={["#FFD700", "#FFA500", "#FF0000"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.comingSoonGradient}
-          >
-            <View style={styles.comingSoonContent}>
-              <Ionicons name="time-outline" size={80} color="#FFD700" />
-              <Text style={styles.comingSoonText}>قريباً</Text>
-              <Text style={styles.comingSoonSubtext}>
-                نعمل بجد لنقدم لكم مكملات غذائية رائعة!
-              </Text>
-            </View>
-          </LinearGradient>
-        </View>
-      </SafeAreaView>
+      <View style={styles.comingSoonContainer}>
+        <LinearGradient
+          colors={["#FFD700", "#FFA500", "#FF0000"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.comingSoonGradient}
+        >
+          <View style={styles.comingSoonContent}>
+            <Ionicons name="time-outline" size={80} color="#FFD700" />
+            <Text style={styles.comingSoonText}>قريباً</Text>
+            <Text style={styles.comingSoonSubtext}>
+              نعمل بجد لنقدم لكم مكملات غذائية رائعة!
+            </Text>
+          </View>
+        </LinearGradient>
+      </View>
     );
   }
 

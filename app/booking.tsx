@@ -9,8 +9,9 @@ import {
   Image,
   Dimensions,
   Platform,
+  Modal,
 } from "react-native";
-import { supabase } from "../utils/supabase";
+import { supabase, supabaseAdmin } from "../utils/supabase";
 import AdminBookingScreen from "./adminBooking";
 
 export interface Locker {
@@ -27,7 +28,10 @@ const ITEM_WIDTH = (width - 30) / 3; // Adjust width for padding and margin
 export default function BookingScreen() {
   const [lockers, setLockers] = useState<Locker[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null);
 
   useEffect(() => {
     fetchLockers();
@@ -55,7 +59,56 @@ export default function BookingScreen() {
     setLoading(false);
   };
 
+  const fetchUsers = async () => {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+    if (error) {
+      Alert.alert("Error", error.message);
+    } else {
+      setUsers(data.users || []);
+    }
+  };
+
+  const handleChangeUserPress = async (locker: Locker) => {
+    setSelectedLocker(locker);
+    await fetchUsers();
+    setModalVisible(true);
+  };
+
   const handleLockerPress = (locker: Locker) => {
+    if (isAdmin) {
+      Alert.alert(
+        "Locker Booked",
+        `This locker is booked by ${locker.owner}.`,
+        [
+          {
+            text: "Change User",
+            onPress: () => handleChangeUserPress(locker),
+          },
+          {
+            text: "جعلها الخزنة متاحة",
+            onPress: async () => {
+              const { error } = await supabase
+                .from("lockers")
+                .update({ status: "available", available: true, owner: null })
+                .eq("id", locker.id);
+
+              if (error) {
+                Alert.alert("Error", error.message);
+              } else {
+                Alert.alert("Success", "The locker has been marked as free.");
+                fetchLockers(); // Refresh locker list
+              }
+            },
+          },
+          {
+            text: "إلغاء",
+            style: "cancel",
+          },
+        ]
+      );
+      return; // Exit the function after handling admin actions
+    }
+
     if (locker.status === "pending") {
       Alert.alert(
         "حالة الخزنة ",
@@ -80,7 +133,9 @@ export default function BookingScreen() {
             .from("lockers")
             .select("*")
             .eq("owner", user.id);
-          if (data) {
+          if (data?.length) {
+            console.log("data ", data);
+
             Alert.alert("انت بالفعل تمتلك خزانة");
             return;
           }
@@ -131,9 +186,7 @@ export default function BookingScreen() {
       </Text>
     </TouchableOpacity>
   );
-  if (isAdmin) {
-    return <AdminBookingScreen />;
-  }
+
   return (
     <View style={styles.container}>
       <Image
@@ -152,6 +205,40 @@ export default function BookingScreen() {
           contentContainerStyle={styles.list}
         />
       )}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select User</Text>
+          {users.map((user) => (
+            <TouchableOpacity
+              key={user.id}
+              onPress={async () => {
+                const { error } = await supabase
+                  .from("lockers")
+                  .update({ owner: user.id, status: "pending" })
+                  .eq("id", selectedLocker?.id);
+
+                if (error) {
+                  Alert.alert("Error", error.message);
+                } else {
+                  Alert.alert("Success", `Locker booked by ${user.email}.`);
+                  fetchLockers(); // Refresh locker list
+                }
+                setModalVisible(false); // Close the modal
+              }}
+            >
+              <Text style={styles.userText}>{user.email}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text style={styles.closeButton}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -223,5 +310,26 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginTop: 7,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+  },
+  modalTitle: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: "white",
+  },
+  userText: {
+    fontSize: 18,
+    color: "white",
+    padding: 10,
+  },
+  closeButton: {
+    fontSize: 18,
+    color: "white",
+    marginTop: 20,
   },
 });
